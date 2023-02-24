@@ -38,7 +38,7 @@ frame = function() {
 	action.execute_mario_action(mario)
 }
 
-test = function(x, spd, criterion = () => false, dbg = false) {
+test = function(x, spd, criterion = () => true, dbg = false) {
 	mario = new Mario(controller)
 
 	mario.action = "ACT_WALKING"
