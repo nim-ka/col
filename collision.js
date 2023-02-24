@@ -1,3 +1,5 @@
+const { Surface } = require("./surface.js")
+
 class WallCollisionData {
 	numWalls = 0
 	walls = []
@@ -131,7 +133,7 @@ function find_floor_from_list(surfList, x, y, z) {
 			continue
 		}
 
-		if (surf.type == "SURFACE_CAMERA_BOUNDARY") {
+		if (surf.type == Surface.SURFACE_CAMERA_BOUNDARY) {
 			continue
 		}
 
@@ -183,7 +185,7 @@ function find_ceil_from_list(surfList, x, y, z) {
 			continue
 		}
 
-		if (surf.type == "SURFACE_CAMERA_BOUNDARY") {
+		if (surf.type == Surface.SURFACE_CAMERA_BOUNDARY) {
 			continue
 		}
 
@@ -275,7 +277,7 @@ function find_floor(x, y, z) {
 	let { floor: dynamicFloor, height: dynamicHeight } = find_floor_from_list(dynamicFloors, x, y, z)
 	let { floor, height } = find_floor_from_list(staticFloors, x, y, z)
 
-	if (floor && floor.type == "SURFACE_INTANGIBLE") {
+	if (floor && floor.type == Surface.SURFACE_INTANGIBLE) {
 		({ floor, height } = find_floor_from_list(staticFloors, x, (y - 200) | 0, z))
 	}
 

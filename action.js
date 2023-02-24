@@ -1,4 +1,5 @@
 const { sqrtf, sins, coss, atan2s, approach_s32, approach_f32 } = require("./math.js")
+const { Surface } = require("./surface.js")
 const step = require("./step.js")
 const Mario = require("./mario.js")
 
@@ -8,7 +9,7 @@ function act_walking(m) {
 	}
 
 	if (should_begin_sliding(m)) {
-		return set_mario_action(m, "ACT_BEGIN_SLIDING", 0)
+		return set_mario_action(m, Mario.ACT_BEGIN_SLIDING, 0)
 	}
 
 	if (m.input & Mario.INPUT_FIRST_PERSON) {
@@ -28,11 +29,11 @@ function act_walking(m) {
 	}
 
 	if (analog_stick_held_back(m) && m.forwardVel >= 16) {
-		return set_mario_action(m, "ACT_TURNING_AROUND", 0)
+		return set_mario_action(m, Mario.ACT_TURNING_AROUND, 0)
 	}
 
 	if (m.input & Mario.INPUT_Z_PRESSED) {
-		return set_mario_action(m, "ACT_CROUCH_SLIDE", 0)
+		return set_mario_action(m, Mario.ACT_CROUCH_SLIDE, 0)
 	}
 
 	m.actionState = 0
@@ -41,14 +42,14 @@ function act_walking(m) {
 	update_walking_speed(m)
 
 	switch (step.perform_ground_step(m)) {
-		case "GROUND_STEP_LEFT_GROUND":
-			set_mario_action(m, "ACT_FREEFALL", 0)
+		case Mario.GROUND_STEP_LEFT_GROUND:
+			set_mario_action(m, Mario.ACT_FREEFALL, 0)
 			break
 
-		case "GROUND_STEP_NONE":
+		case Mario.GROUND_STEP_NONE:
 			break
 
-		case "GROUND_STEP_HIT_WALL":
+		case Mario.GROUND_STEP_HIT_WALL:
 			push_or_sidle_wall(m, startPos)
 			m.actionTimer = 0
 			break
@@ -61,7 +62,7 @@ function act_walking(m) {
 function act_decelerating(m) {
 	if (!(m.input & Mario.INPUT_FIRST_PERSON)) {
 		if (should_begin_sliding(m)) {
-			return set_mario_action(m, "ACT_BEGIN_SLIDING", 0)
+			return set_mario_action(m, Mario.ACT_BEGIN_SLIDING, 0)
 		}
 
 		if (m.input & Mario.INPUT_A_PRESSED) {
@@ -73,25 +74,25 @@ function act_decelerating(m) {
 		}
 
 		if (m.input & Mario.INPUT_NONZERO_ANALOG) {
-			return set_mario_action(m, "ACT_WALKING", 0)
+			return set_mario_action(m, Mario.ACT_WALKING, 0)
 		}
 
 		if (m.input & INPUT_Z_PRESSED) {
-			return set_mario_action(m, "ACT_CROUCH_SLIDE", 0)
+			return set_mario_action(m, Mario.ACT_CROUCH_SLIDE, 0)
 		}
 	}
 
 	if (update_decelerating_speed(m)) {
-		return set_mario_action(m, "ACT_IDLE", 0)
+		return set_mario_action(m, Mario.ACT_IDLE, 0)
 	}
 
 	switch (step.perform_ground_step(m)) {
-		case "GROUND_STEP_LEFT_GROUND":
-			set_mario_action(m, "ACT_FREEFALL", 0)
+		case Mario.GROUND_STEP_LEFT_GROUND:
+			set_mario_action(m, Mario.ACT_FREEFALL, 0)
 			break
 
-		case "GROUND_STEP_HIT_WALL":
-			if (m.get_floor_class() == "SURFACE_CLASS_VERY_SLIPPERY") {
+		case Mario.GROUND_STEP_HIT_WALL:
+			if (m.get_floor_class() == Surface.SURFACE_CLASS_VERY_SLIPPERY) {
 				m.bonk_reflection(true)
 			} else {
 				m.set_forward_vel(0)
@@ -109,11 +110,11 @@ function act_standing_against_wall(m) {
 	}
 
 	if (m.input & Mario.INPUT_FIRST_PERSON) {
-		return set_mario_action(m, "ACT_FIRST_PERSON", 0)
+		return set_mario_action(m, Mario.ACT_FIRST_PERSON, 0)
 	}
 
 	if (m.input & Mario.INPUT_B_PRESSED) {
-		return set_mario_action(m, "ACT_PUNCHING", 0)
+		return set_mario_action(m, Mario.ACT_PUNCHING, 0)
 	}
 
 	stationary_ground_step(m)
@@ -122,19 +123,19 @@ function act_standing_against_wall(m) {
 
 function check_common_action_exits(m) {
 	if (m.input & Mario.INPUT_A_PRESSED) {
-		return set_mario_action(m, "ACT_JUMP", 0)
+		return set_mario_action(m, Mario.ACT_JUMP, 0)
 	}
 
 	if (m.input & Mario.INPUT_OFF_FLOOR) {
-		return set_mario_action(m, "ACT_FREEFALL", 0)
+		return set_mario_action(m, Mario.ACT_FREEFALL, 0)
 	}
 
 	if (m.input & Mario.INPUT_NONZERO_ANALOG) {
-		return set_mario_action(m, "ACT_WALKING", 0)
+		return set_mario_action(m, Mario.ACT_WALKING, 0)
 	}
 
 	if (m.input & Mario.INPUT_ABOVE_SLIDE) {
-		return set_mario_action(m, "ACT_BEGIN_SLIDING", 0)
+		return set_mario_action(m, Mario.ACT_BEGIN_SLIDING, 0)
 	}
 
 	return false
@@ -178,10 +179,10 @@ function check_ground_dive_or_punch(m) {
 	if (m.input & Mario.INPUT_B_PRESSED) {
 		if (m.forwardVel >= 29 && m.controller.stickMag > 48) {
 			m.vel[1] = 20
-			return set_mario_action(m, "ACT_DIVE", 1)
+			return set_mario_action(m, Mario.ACT_DIVE, 1)
 		}
 
-		return set_mario_action(m, "ACT_MOVE_PUNCHING", 0)
+		return set_mario_action(m, Mario.ACT_MOVE_PUNCHING, 0)
 	}
 
 	return false
@@ -190,14 +191,14 @@ function check_ground_dive_or_punch(m) {
 function begin_braking_action(m) {
 	if (m.actionState == 1) {
 		m.faceAngle[1] = m.actionArg
-		return set_mario_action(m, "ACT_STANDING_AGAINST_WALL", 0)
+		return set_mario_action(m, Mario.ACT_STANDING_AGAINST_WALL, 0)
 	}
 
 	if (m.forwardVel >= 16 && m.floor.normal.y >= 0.17364818) {
-		return set_mario_action(m, "ACT_BRAKING", 0)
+		return set_mario_action(m, Mario.ACT_BRAKING, 0)
 	}
 
-	return set_mario_action(m, "ACT_DECELERATING", 0)
+	return set_mario_action(m, Mario.ACT_DECELERATING, 0)
 }
 
 function analog_stick_held_back(m) {
@@ -219,7 +220,7 @@ function update_decelerating_speed(m) {
 function update_walking_speed(m) {
 	let maxTargetSpeed
 
-	if (m.floor.type == "SURFACE_SLOW") {
+	if (m.floor.type == Surface.SURFACE_SLOW) {
 		maxTargetSpeed = 24
 	} else {
 		maxTargetSpeed = 32
@@ -251,11 +252,11 @@ function apply_slope_accel(m) {
 		let slopeAccel
 
 		switch (m.get_floor_class()) {
-			case "SURFACE_CLASS_VERY_SLIPPERY":
+			case Surface.SURFACE_CLASS_VERY_SLIPPERY:
 				slopeAccel = 5.3
 				break
 
-			case "SURFACE_CLASS_SLIPPERY":
+			case Surface.SURFACE_CLASS_SLIPPERY:
 				slopeAccel = 2.7
 				break
 
@@ -263,7 +264,7 @@ function apply_slope_accel(m) {
 				slopeAccel = 1.7
 				break
 
-			case "SURFACE_CLASS_NOT_SLIPPERY":
+			case Surface.SURFACE_CLASS_NOT_SLIPPERY:
 				slopeAccel = 0
 				break
 		}
@@ -296,10 +297,10 @@ function execute_mario_action(m) {
 
 	while (inLoop) {
 		switch (m.action) {
-			case "ACT_WALKING": inLoop = act_walking(m); break
-			case "ACT_DECELERATING": inLoop = act_decelerating(m); break
-			case "ACT_STANDING_AGAINST_WALL": inLoop = act_standing_against_wall(m); break
-			case "ACT_BUTT_SLIDE": return 2
+			case Mario.ACT_WALKING: inLoop = act_walking(m); break
+			case Mario.ACT_DECELERATING: inLoop = act_decelerating(m); break
+			case Mario.ACT_STANDING_AGAINST_WALL: inLoop = act_standing_against_wall(m); break
+			case Mario.ACT_BUTT_SLIDE: return 2
 			default: return 1
 		}
 	}
@@ -309,11 +310,11 @@ function execute_mario_action(m) {
 
 function set_mario_action(m, action, actionArg) {
 	switch (action) {
-		case "ACT_WALKING":
+		case Mario.ACT_WALKING:
 			let floorClass = m.get_floor_class(m)
 			let mag = Math.min(m.intendedMag, 8)
 
-			if (floorClass != "SURFACE_CLASS_VERY_SLIPPERY") {
+			if (floorClass != Surface.SURFACE_CLASS_VERY_SLIPPERY) {
 				if (0 <= m.forwardVel && m.forwardVel < mag) {
 					m.forwardVel = mag
 				}
@@ -321,11 +322,11 @@ function set_mario_action(m, action, actionArg) {
 
 			break
 
-		case "ACT_BEGIN_SLIDING":
+		case Mario.ACT_BEGIN_SLIDING:
 			if (m.facing_downhill(false)) {
-				action = "ACT_BUTT_SLIDE"
+				action = Mario.ACT_BUTT_SLIDE
 			} else {
-				action = "ACT_HOLD_STOMACH_SLIDE"
+				action = Mario.ACT_HOLD_STOMACH_SLIDE
 			}
 
 			break

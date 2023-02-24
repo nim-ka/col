@@ -12,13 +12,13 @@ function perform_ground_step(m) {
 
 		stepResult = perform_ground_quarter_step(m, intendedPos)
 
-		if (stepResult == "GROUND_STEP_LEFT_GROUND" || stepResult == "GROUND_STEP_HIT_WALL_STOP_QSTEPS") {
+		if (stepResult == Mario.GROUND_STEP_LEFT_GROUND || stepResult == Mario.GROUND_STEP_HIT_WALL_STOP_QSTEPS) {
 			break
 		}
 	}
 
-	if (stepResult == "GROUND_STEP_HIT_WALL_CONTINUE_QSTEPS") {
-		stepResult = "GROUND_STEP_HIT_WALL"
+	if (stepResult == Mario.GROUND_STEP_HIT_WALL_CONTINUE_QSTEPS) {
+		stepResult = Mario.GROUND_STEP_HIT_WALL
 	}
 
 	return stepResult
@@ -35,7 +35,7 @@ function perform_ground_quarter_step(m, nextPos) {
 
 	if (nextPos[1] > floorHeight + 100) {
 		if (nextPos[1] + 160 >= ceilHeight) {
-			return "GROUND_STEP_HIT_WALL_STOP_QSTEPS"
+			return Mario.GROUND_STEP_HIT_WALL_STOP_QSTEPS
 		}
 
 		m.pos[0] = nextPos[0]
@@ -43,11 +43,11 @@ function perform_ground_quarter_step(m, nextPos) {
 		m.pos[2] = nextPos[2]
 		m.floor = floor
 		m.floorHeight = floorHeight
-		return "GROUND_STEP_LEFT_GROUND"
+		return Mario.GROUND_STEP_LEFT_GROUND
 	}
 
 	if (floorHeight + 160 >= ceilHeight) {
-		return "GROUND_STEP_HIT_WALL_STOP_QSTEPS"
+		return Mario.GROUND_STEP_HIT_WALL_STOP_QSTEPS
 	}
 
 	m.pos[0] = nextPos[0]
@@ -62,13 +62,13 @@ function perform_ground_quarter_step(m, nextPos) {
 		if (
 			wallDYaw >= 0x2AAA && wallDYaw <= 0x5555 ||
 			wallDYaw <= -0x2AAA && wallDYaw >= -0x5555) {
-			return "GROUND_STEP_NONE"
+			return Mario.GROUND_STEP_NONE
 		}
 
-		return "GROUND_STEP_HIT_WALL_CONTINUE_QSTEPS"
+		return Mario.GROUND_STEP_HIT_WALL_CONTINUE_QSTEPS
 	}
 
-	return "GROUND_STEP_NONE"
+	return Mario.GROUND_STEP_NONE
 }
 
 function resolve_and_return_wall_collisions(pos, offset, radius) {

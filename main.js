@@ -44,7 +44,7 @@ test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false)
 
 	mario = new Mario(controller)
 
-	mario.action = "ACT_WALKING"
+	mario.action = Mario.ACT_WALKING
 	mario.pos[0] = x
 	mario.pos[1] = y
 	mario.pos[2] = z
@@ -117,10 +117,16 @@ goodyaw = function(m) {
 
 let start = +process.argv[2]
 let end = +process.argv[3]
-let l = 0
 
-for (let x = start; x > end; x--) {
-	let p = testx(x, goodyaw)
-	console.log(x, l += p.length, p.length)
-        fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
+if (!start || !end) {
+	repl.start("> ")
+} else {
+	let l = 0
+
+	for (let x = start; x > end; x--) {
+		let p = testx(x, goodyaw)
+		console.log(x, l += p.length, p.length)
+	        fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
+	}
 }
+

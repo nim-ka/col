@@ -36,7 +36,7 @@ function process(str, translation = [0, 0, 0], rotation = [0, 0, 0]) {
 		if (lines[i].includes("COL_TRI_INIT(")) {
 			let parens = getParens(lines[i]).split(/,\s+/)
 
-			type = parens[0]
+			type = Surface[parens[0]]
 			numTris = +parens[1]
 			tris.push([])
 
