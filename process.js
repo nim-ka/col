@@ -14,6 +14,8 @@ function process(str, translation = [0, 0, 0], rotation = [0, 0, 0]) {
 	let numVertices = +getParens(lines[i])
 	let vertices = []
 
+	console.log("Loading", numVertices, "vertices")
+
 	while (!lines[++i].includes("COL_TRI_INIT(")) {
 		if (lines[i].includes("COL_VERTEX(")) {
 			if (vertices.length >= numVertices) {
@@ -37,11 +39,13 @@ function process(str, translation = [0, 0, 0], rotation = [0, 0, 0]) {
 			type = parens[0]
 			numTris = +parens[1]
 			tris.push([])
+
+			console.log("Loading", numTris, "triangles of type", type)
 		}
 
 		if (lines[i].includes("COL_TRI(")) {
-			if (tris.length >= numTris) {
-				throw "Error: exceeded max vertices"
+			if (tris[tris.length - 1].length >= numTris) {
+				throw "Error: exceeded max triangles"
 			}
 
 			let parens = getParens(lines[i]).split(/,\s+/).map(e => +e)

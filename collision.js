@@ -1,3 +1,111 @@
+class WallCollisionData {
+	numWalls = 0
+	walls = []
+
+	constructor(x, y, z, offsetY, radius) {
+		this.x = Math.fround(x)
+		this.y = Math.fround(y)
+		this.z = Math.fround(z)
+
+		this.offsetY = Math.fround(offsetY)
+		this.radius = Math.fround(radius)
+	}
+}
+
+function find_wall_collisions_from_list(surfList, data) {
+	let radius = Math.min(data.radius, 200)
+	let x = data.x
+	let y = data.y + data.offsetY
+	let z = data.z
+
+	let numCols = 0
+
+	for (let surf of surfList) {
+		if (y < surf.lowerY || y > surf.upperY) {
+			continue
+		}
+
+		let offset = surf.normal.x * x + surf.normal.y * y + surf.normal.z * z + surf.originOffset
+
+		if (offset < -radius || offset > radius) {
+			continue
+		}
+
+		if (surf.proj == "x") {
+			let w1 = -surf.v1.z
+			let w2 = -surf.v2.z
+			let w3 = -surf.v3.z
+
+			let y1 = surf.v1.y
+			let y2 = surf.v2.y
+			let y3 = surf.v3.y
+
+			if (surf.normal.x > 0) {
+				if ((y1 - y) * (w2 - w1) - (w1 - -z) * (y2 - y1) > 0) {
+					continue
+				}
+				if ((y2 - y) * (w3 - w2) - (w2 - -z) * (y3 - y2) > 0) {
+					continue
+				}
+				if ((y3 - y) * (w1 - w3) - (w3 - -z) * (y1 - y3) > 0) {
+					continue
+				}
+			} else {
+				if ((y1 - y) * (w2 - w1) - (w1 - -z) * (y2 - y1) < 0) {
+					continue
+				}
+				if ((y2 - y) * (w3 - w2) - (w2 - -z) * (y3 - y2) < 0) {
+					continue
+				}
+				if ((y3 - y) * (w1 - w3) - (w3 - -z) * (y1 - y3) < 0) {
+					continue
+				}
+			}
+		} else {
+			let w1 = surf.v1.x
+			let w2 = surf.v2.x
+			let w3 = surf.v3.x
+
+			let y1 = surf.v1.y
+			let y2 = surf.v2.y
+			let y3 = surf.v3.y
+
+			if (surf.normal.z > 0) {
+				if ((y1 - y) * (w2 - w1) - (w1 - x) * (y2 - y1) > 0) {
+					continue
+				}
+				if ((y2 - y) * (w3 - w2) - (w2 - x) * (y3 - y2) > 0) {
+					continue
+				}
+				if ((y3 - y) * (w1 - w3) - (w3 - x) * (y1 - y3) > 0) {
+					continue
+				}
+			} else {
+				if ((y1 - y) * (w2 - w1) - (w1 - x) * (y2 - y1) < 0) {
+					continue
+				}
+				if ((y2 - y) * (w3 - w2) - (w2 - x) * (y3 - y2) < 0) {
+					continue
+				}
+				if ((y3 - y) * (w1 - w3) - (w3 - x) * (y1 - y3) < 0) {
+					continue
+				}
+			}
+		}
+
+		data.x += surf.normal.x * (radius - offset)
+		data.z += surf.normal.z * (radius - offset)
+
+		if (data.numWalls < 4) {
+			data.walls[data.numWalls++] = surf
+		}
+
+		numCols++
+	}
+
+	return numCols
+}
+
 function find_floor_from_list(surfList, x, y, z) {
 	let pheight = -11000
 	let floor = null
@@ -102,6 +210,44 @@ function find_ceil_from_list(surfList, x, y, z) {
 	return { ceil: ceil, height: pheight }
 }
 
+let staticWalls
+let dynamicWalls
+
+function set_static_wall_list(list) {
+	staticWalls = list
+}
+
+function set_dynamic_wall_list(list) {
+	dynamicWalls = list
+}
+
+function find_wall_collision(x, y, z, offsetY, radius) {
+	const collision = new WallCollisionData(x, y, z, offsetY, radius)
+	const numCols = find_wall_collisions(collision)
+
+	return { x: collision.x, y: collision.y, z: collision.z, numCols }
+}
+
+function find_wall_collisions(colData) {
+	let x = colData.x
+	let z = colData.z
+
+	colData.numWalls = 0
+
+	if (x <= -8192 || x >= 8192) {
+		return 0
+	}
+
+	if (z <= -8192 || z >= 8192) {
+		return 0
+	}
+
+	let numDynamicCols = find_wall_collisions_from_list(dynamicWalls, colData)
+	let numStaticCols = find_wall_collisions_from_list(staticWalls, colData)
+
+	return numDynamicCols + numStaticCols
+}
+
 let staticFloors
 let dynamicFloors
 
@@ -176,13 +322,24 @@ function find_ceil(x, y, z) {
 	return { ceil: ceil, height: height }
 }
 
+function vec3f_find_ceil(pos, height) {
+	return find_ceil(pos[0], height + 80, pos[2])
+}
+
 module.exports = {
+	WallCollisionData,
+	find_wall_collisions_from_list,
 	find_floor_from_list,
 	find_ceil_from_list,
+	set_static_wall_list,
+	set_dynamic_wall_list,
+	find_wall_collision,
+	find_wall_collisions,
 	set_static_floor_list,
 	set_dynamic_floor_list,
 	find_floor,
 	set_static_ceil_list,
 	set_dynamic_ceil_list,
 	find_ceil,
+	vec3f_find_ceil,
 }

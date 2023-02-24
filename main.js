@@ -4,6 +4,10 @@
 /* const */ processCol = require("./process.js").process
 /* const */ col = require("./collision.js")
 
+/* const */ Controller = require("./controller.js")
+/* const */ Mario = require("./mario.js")
+/* const */ action = require("./action.js")
+
 /* let */ staticFloors = []
 /* let */ staticWalls = []
 /* let */ staticCeilings = []
@@ -12,71 +16,60 @@
 /* let */ dynamicWalls = []
 /* let */ dynamicCeilings = []
 
-/* let */ levelTris = processCol(fs.readFileSync("./jrb/areas/1/collision.inc.c", "utf8")).flat()
-/* let */ rockTris = processCol(fs.readFileSync("./jrb/rock/collision.inc.c", "utf8"), [-5332, 1434, 1023], [0, (315 * 32768 / 180) | 0, 0]).flat()
+/* let */ levelTris = processCol(fs.readFileSync("./pss/areas/1/collision.inc.c", "utf8")).flat()
 
 levelTris.forEach(surface => surface.addToList(staticFloors, staticWalls, staticCeilings))
-rockTris.forEach(surface => surface.addToList(dynamicFloors, dynamicWalls, dynamicCeilings))
 
 col.set_static_floor_list(staticFloors)
 col.set_dynamic_floor_list(dynamicFloors)
+col.set_static_wall_list(staticWalls)
+col.set_dynamic_wall_list(dynamicWalls)
 col.set_static_ceil_list(staticCeilings)
 col.set_dynamic_ceil_list(dynamicCeilings)
 
-/* let */ test = function(x, z) {
-	let { floor: f1, height: hf1 } = col.find_floor(x, 5000, z)
-	let { floor: f2, height: hf2 } = col.find_floor(x, hf1 - 79, z)
+/* const */ controller = new Controller()
+/* const */ mario = new Mario(controller)
 
-	if (f1 == null || f2 == null) {
-		return false
-	}
+controller.reset()
+controller.setStick(127, 0)
+controller.setButtons(Controller.U_CBUTTONS)
 
-	if (hf2 > 1024 - 40) {
-		return false
-	}
-
-	if (hf1 - (hf2 | 0) > 78) {
-		return false
-	}
-
-	let { ceil: c, height: hc } = col.find_ceil(x, (hf2 | 0) + 80, z)
-
-	return c == null
+frame = function() {
+	action.execute_mario_action(mario)
 }
 
-/* let */ test2 = function(x, z) {
-	let { floor: f1, height: hf1 } = col.find_floor(x, 950, z)
-	let { floor: f2, height: hf2 } = col.find_floor(x, hf1, z)
+test = function(x, spd, criterion = () => false, dbg = false) {
+	mario = new Mario(controller)
 
-	if (f2 != null && f2 != f1) {
-		return false
-	}
+	mario.action = "ACT_WALKING"
+	mario.pos[0] = x
+	mario.pos[1] = -4587
+	mario.pos[2] = 6475
+	mario.forwardVel = spd
+	mario.faceAngle[1] = 32768
+	mario.set_int_yaw(32768)
 
-	let { ceil: c, height: hc } = col.find_ceil(x, (hf1 | 0) + 80, z)
+	while (Math.abs(mario.forwardVel) > 317) {
+		try {
+			frame()
 
-	return c != null
-}
-
-/* let */ testrange = function(f = test, ...a) {
-	/* let */ points = []
-
-	for (let x = -5600; x < -5000; x++) {
-		for (let z = 700; z < 1300; z++) {
-			if (f(x - 0.5, z + 0.5, ...a)) {
-				points.push([x, z])
+			if (dbg) {
+				console.log([...mario.pos], mario.faceAngle[1], mario.forwardVel)
 			}
+		} catch (err) {
+			if (dbg) {
+				console.log(err)
+			}
+
+			return false
+		}
+
+		if (Math.hypot(mario.pos[0] - 993, mario.pos[2] - -5614) < 200 && criterion(mario)) {
+			return { pos: mario.pos, spd: mario.forwardVel }
 		}
 	}
 
-	console.log(points.length, points)
-
-	return points
-}
-
-testrange()
-
-write = function(file = "points.txt") {
-	fs.writeFileSync(file, points.map(e => e.join(",")).join("\r\n"))
+	return false
 }
 
 repl.start("> ")

@@ -31,6 +31,7 @@ class Surface {
 		this.originOffset = Math.fround(originOffset)
 		this.lowerY = lowerY
 		this.upperY = upperY
+		this.proj = "z"
 	}
 
 	addToList(floorList, wallList, ceilList) {
@@ -49,6 +50,10 @@ class Surface {
 			this.col = Surface.COL_WALL
 			surfList = wallList
 			sortDir = 0
+
+			if (this.normal.x < -0.707 || this.normal.x > 0.707) {
+				this.proj = "x"
+			}
 		}
 
 		let thisPriority = this.v1.y * sortDir
