@@ -118,7 +118,7 @@ goodyaw = function(m) {
 let start = +process.argv[2]
 let l = 0
 
-for (let x = start; x > start - 100; x--) {
+for (let x = start; x > start - 50; x--) {
 	let p = testx(x, goodyaw)
 	console.log(x, l += p.length, p.length)
         fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
