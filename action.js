@@ -299,9 +299,12 @@ function execute_mario_action(m) {
 			case "ACT_WALKING": inLoop = act_walking(m); break
 			case "ACT_DECELERATING": inLoop = act_decelerating(m); break
 			case "ACT_STANDING_AGAINST_WALL": inLoop = act_standing_against_wall(m); break
-			default: throw `Error: Unrecognized action ${m.action}`
+			case "ACT_BUTT_SLIDE": return 2
+			default: return 1
 		}
 	}
+
+	return 0
 }
 
 function set_mario_action(m, action, actionArg) {

@@ -35,41 +35,90 @@ controller.setStick(127, 0)
 controller.setButtons(Controller.U_CBUTTONS)
 
 frame = function() {
-	action.execute_mario_action(mario)
+	return action.execute_mario_action(mario)
 }
 
-test = function(x, spd, criterion = () => true, dbg = false) {
+test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false) {
+        let y = -4587
+        let z = 4250
+
 	mario = new Mario(controller)
 
 	mario.action = "ACT_WALKING"
 	mario.pos[0] = x
-	mario.pos[1] = -4587
-	mario.pos[2] = 6475
+	mario.pos[1] = y
+	mario.pos[2] = z
 	mario.forwardVel = spd
-	mario.faceAngle[1] = 32768
-	mario.set_int_yaw(32768)
+	mario.faceAngle[1] = angle
+	mario.queuedCUp = true
 
-	while (Math.abs(mario.forwardVel) > 317) {
-		try {
-			frame()
+        let start = [x, y, z, angle, spd]
 
-			if (dbg) {
-				console.log([...mario.pos], mario.faceAngle[1], mario.forwardVel)
-			}
-		} catch (err) {
-			if (dbg) {
-				console.log(err)
-			}
+	while (Math.abs(mario.forwardVel) > 250) {
+		let res = frame()
 
+		if (res == 1) {
 			return false
 		}
 
-		if (Math.hypot(mario.pos[0] - 993, mario.pos[2] - -5614) < 200 && criterion(mario)) {
-			return { pos: mario.pos, spd: mario.forwardVel }
+		let pos = [...mario.pos]
+		let state = { start, end: [...pos, mario.faceAngle[1], mario.forwardVel] }
+
+		if (dbg) {
+			console.log(state)
+		}
+
+		if (res == 2) {
+			if (criterion(mario)) {
+				console.log(state)
+				throw "a"
+			}
+		}
+
+		let dist = Math.hypot(pos[0] - 993, pos[2] - -5614)
+
+		if (dist < 200) {
+			if (criterion(mario)) {
+                                state.dist = dist
+				return state
+			}
 		}
 	}
 
 	return false
 }
 
-repl.start("> ")
+testx = function(x, criterion = () => true, dbg) {
+	let p = []
+
+	for (let angle = 8192; angle >= -8192; angle -= 16) {
+		for (let spd = -340; spd > -390; spd--) {
+			let res = test(x, angle, spd, (m) => m.pos[1] > -4200 && criterion(m))
+
+                        if (res) {
+				p.push(res)
+			}
+		}
+
+                if (dbg) {
+                        console.log(angle, p.length)
+                }
+	}
+
+	return p
+}
+
+goodyaw = function(m) {
+	let yaw = m.faceAngle[1]
+	let ryaw = new Int16Array([-yaw])[0]
+	return yaw > 14300 - 4096 && yaw < 14300 + 4096 ||
+		ryaw > 14300 - 4096 && ryaw < 14300 + 4096
+}
+
+let l = 0
+
+for (let x = -5500; x > -5900; x--) {
+	let p = testx(x, goodyaw)
+	console.log(x, l += p.length, p.length)
+        fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
+}
