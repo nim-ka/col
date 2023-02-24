@@ -115,10 +115,11 @@ goodyaw = function(m) {
 		ryaw > 14300 - 4096 && ryaw < 14300 + 4096
 }
 
+let start = +process.argv[2]
 let l = 0
 
-for (let x = -5500; x > -5900; x--) {
+for (let x = start; x > start - 100; x--) {
 	let p = testx(x, goodyaw)
 	console.log(x, l += p.length, p.length)
-        fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
+        //fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
 }
