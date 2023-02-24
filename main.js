@@ -121,5 +121,5 @@ let l = 0
 for (let x = start; x > start - 100; x--) {
 	let p = testx(x, goodyaw)
 	console.log(x, l += p.length, p.length)
-        //fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
+        fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
 }
