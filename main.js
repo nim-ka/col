@@ -26,10 +26,6 @@ frame = function() {
 
 	framesExecuted++
 
-	if (framesExecuted % 100000 == 0) {
-		console.log(framesExecuted)
-	}
-
 	return res
 }
 
@@ -57,27 +53,34 @@ test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false)
 		}
 
 		let pos = [...mario.pos]
-		let state = { start, end: [...pos, mario.faceAngle[1], mario.forwardVel] }
+		let state = { res, start, end: [...pos, mario.faceAngle[1], mario.forwardVel] }
 
 		if (dbg) {
 			console.log(state)
 		}
 
-		if (res == 2) {
-			if (criterion(mario)) {
-				console.log(state)
-				throw "a"
+		if (res == 2 || res == 3) {
+			if (criterion(mario, res)) {
+				return state
+			} else {
+				return false
 			}
+		}
+
+/*
+		if (res == 3) {
+			return false
 		}
 
 		let dist = Math.hypot(pos[0] - 993, pos[2] - -5614)
 
 		if (dist < 200) {
 			if (criterion(mario)) {
-                                state.dist = dist
+				state.dist = dist
 				return state
 			}
 		}
+*/
 	}
 
 	return false
@@ -87,8 +90,8 @@ testx = function(x, criterion = () => true, dbg) {
 	let p = []
 
 	for (let angle = 8192; angle >= -8192; angle -= 16) {
-		for (let spd = -340; spd > -390; spd--) {
-			let res = test(x, angle, spd, (m) => m.pos[1] > -4200 && criterion(m))
+		for (let spd = -380; spd > -440; spd--) {
+			let res = test(x, angle, spd, (m, r) => m.pos[1] > -4200 && criterion(m, r))
 
                         if (res) {
 				p.push(res)
@@ -103,25 +106,50 @@ testx = function(x, criterion = () => true, dbg) {
 	return p
 }
 
+const center = s16(-12000)
+const range = s16(4096)
+
 goodyaw = function(m) {
 	let yaw = m.faceAngle[1]
-	let ryaw = s16(-yaw)
-	return yaw > 14300 - 4096 && yaw < 14300 + 4096 ||
-		ryaw > 14300 - 4096 && ryaw < 14300 + 4096
+	let ryaw = s16(yaw + 32768)
+
+	return m.forwardVel >= 0 && Math.abs(s16(yaw - center)) < range ||
+		m.forwardVel <= 0 && Math.abs(s16(ryaw - center)) < range
 }
 
 let start = +process.argv[2]
 let end = +process.argv[3]
+let dbg = process.argv[4] == "true"
 
 if (!start || !end) {
 	repl.start("> ")
 } else {
+	console.log(start, end, dbg)
+
 	let l = 0
+	let p = new Map()
 
 	for (let x = start; x > end; x--) {
-		let p = testx(x, goodyaw)
-		console.log(x, l += p.length, p.length)
-	        fs.writeFileSync(`tests/points${x}.txt`, JSON.stringify(p))
-	}
-}
+		framesExecuted = 0
 
+		let startTime = performance.now()
+		let reses = testx(x, (m, r) => m.pos[1] < -2000 && goodyaw(m), dbg)
+		let endTime = performance.now()
+
+		for (let res of reses) {
+			let hash = res.start[2] + ";" + res.end.join(",")
+			let newRes = { r: res.res, s: [res.start[0], res.start[3], res.start[4]], e: res.end.map(e => Math.round(e * 1000) / 1000) }
+
+			if (res.dist) {
+				newRes.d = Math.round(res.dist * 1000) / 1000
+			}
+
+			p.set(hash, newRes)
+		}
+
+		let fps = framesExecuted / (endTime - startTime) * 1000
+		console.log(`x = ${x};\t${fps.toFixed(0)} fps;\t${p.size} total pts`)
+	}
+
+        fs.writeFileSync(`tests/out-${Date.now() / 1000 | 0}.json`, JSON.stringify([...p.values()]))
+}

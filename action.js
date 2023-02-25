@@ -86,13 +86,15 @@ function act_decelerating(m) {
 		return set_mario_action(m, Mario.ACT_IDLE, 0)
 	}
 
+	let floorClass = m.get_floor_class()
+
 	switch (step.perform_ground_step(m)) {
 		case Mario.GROUND_STEP_LEFT_GROUND:
 			set_mario_action(m, Mario.ACT_FREEFALL, 0)
 			break
 
 		case Mario.GROUND_STEP_HIT_WALL:
-			if (m.get_floor_class() == Surface.SURFACE_CLASS_VERY_SLIPPERY) {
+			if (floorClass == Surface.SURFACE_CLASS_VERY_SLIPPERY) {
 				m.bonk_reflection(true)
 			} else {
 				m.set_forward_vel(0)
@@ -301,6 +303,7 @@ function execute_mario_action(m) {
 			case Mario.ACT_DECELERATING: inLoop = act_decelerating(m); break
 			case Mario.ACT_STANDING_AGAINST_WALL: inLoop = act_standing_against_wall(m); break
 			case Mario.ACT_BUTT_SLIDE: return 2
+			case Mario.ACT_FREEFALL: return 3
 			default: return 1
 		}
 	}
