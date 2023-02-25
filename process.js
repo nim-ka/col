@@ -60,4 +60,4 @@ function process(str, translation = [0, 0, 0], rotation = [0, 0, 0]) {
 
 module.exports = {
 	process,
-};
+}

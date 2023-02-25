@@ -290,14 +290,19 @@ function apply_slope_accel(m) {
 
 function execute_mario_action(m) {
 	let inLoop = true
-
-	m.update_inputs()
-
-	if (m.floor == null) {
-		throw "Error: OoB death"
-	}
+	let first = true
 
 	while (inLoop) {
+		if (first) {
+			m.update_inputs()
+
+			if (m.floor == null) {
+				throw "Error: OoB death"
+			}
+
+			first = false
+		}
+
 		switch (m.action) {
 			case Mario.ACT_WALKING: inLoop = act_walking(m); break
 			case Mario.ACT_DECELERATING: inLoop = act_decelerating(m); break
@@ -329,7 +334,7 @@ function set_mario_action(m, action, actionArg) {
 			if (m.facing_downhill(false)) {
 				action = Mario.ACT_BUTT_SLIDE
 			} else {
-				action = Mario.ACT_HOLD_STOMACH_SLIDE
+				action = Mario.ACT_STOMACH_SLIDE
 			}
 
 			break
