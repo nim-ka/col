@@ -31,7 +31,7 @@ frame = function() {
 
 test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false) {
         let y = -4587
-        let z = 4168
+        let z = 4250
 
 	mario = new Mario(controller)
 
@@ -133,7 +133,7 @@ if (!start || !end) {
 		framesExecuted = 0
 
 		let startTime = performance.now()
-		let reses = testx(x, (m, r) => m.pos[1] < -2000 && goodyaw(m), dbg)
+		let reses = testx(x, (m, r) => m.pos[1] < -2000 && m.pos[2] < -5597.5 && goodyaw(m), dbg)
 		let endTime = performance.now()
 
 		for (let res of reses) {
@@ -152,5 +152,5 @@ if (!start || !end) {
 		console.log(`x = ${x};\t${timeElapsed.toFixed(2)} sec;\t${fps.toFixed(0)} fps;\t${p.size} total pts`)
 	}
 
-        fs.writeFileSync(`tests/out-${Math.random()}.json`, JSON.stringify([...p.values()]))
+        fs.writeFileSync(`tests/out${start}${end}-${(Math.random() * 100000).toFixed(0).padStart(5, "0")}.json`, JSON.stringify([...p.values()]))
 }
