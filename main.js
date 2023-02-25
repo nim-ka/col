@@ -140,7 +140,7 @@ if (!start || !end) {
 		console.log(`Estimated time remaining: ${timeString(estimatedTotalTimeMS * ratioRemaining)}`);
 	}
 	const endTime = process.hrtime.bigint();
-	console.log(`Segment complete. Total time: ${timeString((endTime - startTime) / 1_000_000n)}`);
+	console.log(`Segment complete. Total time: ${timeString(Number(endTime - startTime) / 1_000_000n)}`);
 }
 
 /**
