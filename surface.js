@@ -1,4 +1,4 @@
-const { sqrtf, sins, coss } = require("./math.js")
+const { f32, sqrtf, sins, coss } = require("./math.js")
 
 class Vertex {
 	constructor(x, y, z) {
@@ -10,10 +10,54 @@ class Vertex {
 
 class Normal {
 	constructor(x, y, z) {
-		this.x = Math.fround(x)
-		this.y = Math.fround(y)
-		this.z = Math.fround(z)
+		this.x = f32(x)
+		this.y = f32(y)
+		this.z = f32(z)
 	}
+}
+
+function lower_cell_index(coord) {
+	coord += 8192
+
+	if (coord < 0) {
+		coord = 0
+	}
+
+	coord = s16(coord)
+
+	let index = s16(coord / 1024)
+
+	if (coord % 1024 < 50) {
+		index--
+	}
+
+	if (index < 0) {
+		index = 0
+	}
+
+	return index
+}
+
+function upper_cell_index(coord) {
+	coord += 8192
+
+	if (coord < 0) {
+		coord = 0
+	}
+
+	coord = s16(coord)
+
+	let index = s16(coord / 1024)
+
+	if (coord % 1024 > 1024 - 50) {
+		index++
+	}
+
+	if (index > 15) {
+		index = 15
+	}
+
+	return index
 }
 
 class Surface {
@@ -181,27 +225,23 @@ class Surface {
 		this.v2 = v2
 		this.v3 = v3
 		this.normal = normal
-		this.originOffset = Math.fround(originOffset)
+		this.originOffset = f32(originOffset)
 		this.lowerY = lowerY
 		this.upperY = upperY
 		this.proj = "z"
 	}
 
-	addToList(floorList, wallList, ceilList) {
-		let surfList
+	addToCell(data, dynamic, cellX, cellZ) {
 		let sortDir
 
 		if (this.normal.y > 0.01) {
 			this.col = Surface.COL_FLOOR
-			surfList = floorList
 			sortDir = 1
 		} else if (this.normal.y < -0.01) {
 			this.col = Surface.COL_CEILING
-			surfList = ceilList
 			sortDir = -1
 		} else {
 			this.col = Surface.COL_WALL
-			surfList = wallList
 			sortDir = 0
 
 			if (this.normal.x < -0.707 || this.normal.x > 0.707) {
@@ -209,6 +249,7 @@ class Surface {
 			}
 		}
 
+		let surfList = data[dynamic ? "dynamic" : "static"][cellZ][cellX][this.col]
 		let thisPriority = this.v1.y * sortDir
 
 		let i = 0
@@ -222,6 +263,24 @@ class Surface {
 		}
 
 		surfList.splice(i, 0, this)
+	}
+
+	addToData(data, dynamic) {
+		let minX = Math.min(this.v1.x, this.v2.x, this.v3.x)
+		let minZ = Math.min(this.v1.z, this.v2.z, this.v3.z)
+		let maxX = Math.max(this.v1.x, this.v2.x, this.v3.x)
+		let maxZ = Math.max(this.v1.z, this.v2.z, this.v3.z)
+
+		let minCellX = lower_cell_index(minX)
+		let maxCellX = upper_cell_index(maxX)
+		let minCellZ = lower_cell_index(minZ)
+		let maxCellZ = upper_cell_index(maxZ)
+
+		for (let cellZ = minCellZ; cellZ <= maxCellZ; cellZ++) {
+			for (let cellX = minCellX; cellX <= maxCellX; cellX++) {
+				this.addToCell(data, dynamic, cellX, cellZ)
+			}
+		}
 	}
 
 	static createSurface(type, vtxList, i1, i2, i3, translation = [0, 0, 0], rotation = [0, 0, 0]) {
@@ -294,8 +353,20 @@ class Surface {
 	}
 }
 
+class SurfaceData {
+	constructor() {
+		this.reset()
+	}
+
+	reset() {
+		this.dynamic = new Array(16).fill().map(() => new Array(16).fill().map(() => new Array(3).fill().map(() => [])))
+		this.static  = new Array(16).fill().map(() => new Array(16).fill().map(() => new Array(3).fill().map(() => [])))
+	}
+}
+
 module.exports = {
 	Vertex,
 	Normal,
 	Surface,
+	SurfaceData,
 }

@@ -1,3 +1,17 @@
+function s16(num) {
+//	return new Int16Array([num])[0]
+	return num << 16 >> 16
+}
+
+function u16(num) {
+//	return new Uint16Array([num])[0]
+	return num & 0xFFFF
+}
+
+function f32(num) {
+	return Math.fround(num)
+}
+
 function sqrtf(n) {
 	return Math.sqrt(n)
 }
@@ -46,7 +60,7 @@ function atan2s(y, x) {
 		}
 	}
 
-	return new Uint16Array([ret])[0]
+	return u16(ret)
 }
 
 function approach_s32(current, target, inc, dec) {
@@ -1505,9 +1519,12 @@ const arctanTable = [
 ]
 
 module.exports = {
+	s16,
+	u16,
+	f32,
 	sqrtf,
-	sins: angle => trigTable[new Uint16Array([angle])[0] >> 4],
-	coss: angle => trigTable[0x400 + (new Uint16Array([angle])[0] >> 4)],
+	sins: angle => trigTable[u16(angle) >> 4],
+	coss: angle => trigTable[0x400 + (u16(angle) >> 4)],
 	atan2s,
 	approach_s32,
 	approach_f32,

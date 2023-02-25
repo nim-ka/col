@@ -1,17 +1,32 @@
-const { Surface } = require("./surface.js")
+const { s16, f32 } = require("./math.js")
+const { Surface, SurfaceData } = require("./surface.js")
 
 class WallCollisionData {
 	numWalls = 0
 	walls = []
 
 	constructor(x, y, z, offsetY, radius) {
-		this.x = Math.fround(x)
-		this.y = Math.fround(y)
-		this.z = Math.fround(z)
+		this.x = f32(x)
+		this.y = f32(y)
+		this.z = f32(z)
 
-		this.offsetY = Math.fround(offsetY)
-		this.radius = Math.fround(radius)
+		this.offsetY = f32(offsetY)
+		this.radius = f32(radius)
 	}
+}
+
+const surfData = new SurfaceData()
+
+function reset() {
+	surfData.reset()
+}
+
+function add_static(surface) {
+	surface.addToData(surfData, false)
+}
+
+function add_dynamic(surface) {
+	surface.addToData(surfData, true)
 }
 
 function find_wall_collisions_from_list(surfList, data) {
@@ -146,7 +161,7 @@ function find_floor_from_list(surfList, x, y, z) {
 			continue
 		}
 
-		let height = Math.fround(-(x * nx + nz * z + oo) / ny)
+		let height = f32(-(x * nx + nz * z + oo) / ny)
 
 		if (y - (height + -78) < 0) {
 			continue
@@ -198,7 +213,7 @@ function find_ceil_from_list(surfList, x, y, z) {
 			continue
 		}
 
-		let height = Math.fround(-(x * nx + nz * z + oo) / ny)
+		let height = f32(-(x * nx + nz * z + oo) / ny)
 
 		if (y - (height - -78) > 0) {
 			continue
@@ -210,17 +225,6 @@ function find_ceil_from_list(surfList, x, y, z) {
 	}
 
 	return { ceil: ceil, height: pheight }
-}
-
-let staticWalls
-let dynamicWalls
-
-function set_static_wall_list(list) {
-	staticWalls = list
-}
-
-function set_dynamic_wall_list(list) {
-	dynamicWalls = list
 }
 
 function find_wall_collision(x, y, z, offsetY, radius) {
@@ -244,27 +248,19 @@ function find_wall_collisions(colData) {
 		return 0
 	}
 
-	let numDynamicCols = find_wall_collisions_from_list(dynamicWalls, colData)
-	let numStaticCols = find_wall_collisions_from_list(staticWalls, colData)
+	let cellX = ((x + 8192) / 0x400) & 15
+	let cellZ = ((z + 8192) / 0x400) & 15
+
+	let numDynamicCols = find_wall_collisions_from_list(surfData.dynamic[cellZ][cellX][Surface.COL_WALL], colData)
+	let numStaticCols = find_wall_collisions_from_list(surfData.static[cellZ][cellX][Surface.COL_WALL], colData)
 
 	return numDynamicCols + numStaticCols
 }
 
-let staticFloors
-let dynamicFloors
-
-function set_static_floor_list(list) {
-	staticFloors = list
-}
-
-function set_dynamic_floor_list(list) {
-	dynamicFloors = list
-}
-
 function find_floor(x, y, z) {
-	x = new Int16Array([x])[0]
-	y = new Int16Array([y])[0]
-	z = new Int16Array([z])[0]
+	x = s16(x)
+	y = s16(y)
+	z = s16(z)
 
 	if (x <= -8192 || x >= 8192) {
 		return { floor: null, height: -11000 }
@@ -274,8 +270,11 @@ function find_floor(x, y, z) {
 		return { floor: null, height: -11000 }
 	}
 
-	let { floor: dynamicFloor, height: dynamicHeight } = find_floor_from_list(dynamicFloors, x, y, z)
-	let { floor, height } = find_floor_from_list(staticFloors, x, y, z)
+	let cellX = ((x + 8192) / 0x400) & 15
+	let cellZ = ((z + 8192) / 0x400) & 15
+
+	let { floor: dynamicFloor, height: dynamicHeight } = find_floor_from_list(surfData.dynamic[cellZ][cellX][Surface.COL_FLOOR], x, y, z)
+	let { floor, height } = find_floor_from_list(surfData.static[cellZ][cellX][Surface.COL_FLOOR], x, y, z)
 
 	if (floor && floor.type == Surface.SURFACE_INTANGIBLE) {
 		({ floor, height } = find_floor_from_list(staticFloors, x, (y - 200) | 0, z))
@@ -289,21 +288,10 @@ function find_floor(x, y, z) {
 	return { floor: floor, height: height }
 }
 
-let staticCeilings
-let dynamicCeilings
-
-function set_static_ceil_list(list) {
-	staticCeilings = list
-}
-
-function set_dynamic_ceil_list(list) {
-	dynamicCeilings = list
-}
-
 function find_ceil(x, y, z) {
-	x = new Int16Array([x])[0]
-	y = new Int16Array([y])[0]
-	z = new Int16Array([z])[0]
+	x = s16(x)
+	y = s16(y)
+	z = s16(z)
 
 	if (x <= -8192 || x >= 8192) {
 		return { ceil: null, height: 20000 }
@@ -313,8 +301,11 @@ function find_ceil(x, y, z) {
 		return { ceil: null, height: 20000 }
 	}
 
-	let { ceil: dynamicCeil, height: dynamicHeight } = find_ceil_from_list(dynamicCeilings, x, y, z)
-	let { ceil, height } = find_ceil_from_list(staticCeilings, x, y, z)
+	let cellX = ((x + 8192) / 0x400) & 15
+	let cellZ = ((z + 8192) / 0x400) & 15
+
+	let { ceil: dynamicCeil, height: dynamicHeight } = find_ceil_from_list(surfData.dynamic[cellZ][cellX][Surface.COL_CEILING], x, y, z)
+	let { ceil, height } = find_ceil_from_list(surfData.static[cellZ][cellX][Surface.COL_CEILING], x, y, z)
 
 	if (dynamicHeight < height) {
 		ceil = dynamicCeil
@@ -330,18 +321,15 @@ function vec3f_find_ceil(pos, height) {
 
 module.exports = {
 	WallCollisionData,
+	reset,
+	add_static,
+	add_dynamic,
 	find_wall_collisions_from_list,
 	find_floor_from_list,
 	find_ceil_from_list,
-	set_static_wall_list,
-	set_dynamic_wall_list,
 	find_wall_collision,
 	find_wall_collisions,
-	set_static_floor_list,
-	set_dynamic_floor_list,
 	find_floor,
-	set_static_ceil_list,
-	set_dynamic_ceil_list,
 	find_ceil,
 	vec3f_find_ceil,
 }

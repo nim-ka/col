@@ -1,4 +1,4 @@
-const { sqrtf, sins, coss, atan2s, approach_s32, approach_f32 } = require("./math.js")
+const { s16, sqrtf, sins, coss, atan2s, approach_s32, approach_f32 } = require("./math.js")
 const { Surface } = require("./surface.js")
 const step = require("./step.js")
 const Mario = require("./mario.js")
@@ -155,12 +155,12 @@ function push_or_sidle_wall(m, startPos) {
 	}
 
 	if (m.wall) {
-		let wallAngle = new Int16Array([atan2s(m.wall.normal.z, m.wall.normal.x)])[0]
-		let dWallAngle = new Int16Array([wallAngle - m.faceAngle[1]])[0]
+		let wallAngle = s16(atan2s(m.wall.normal.z, m.wall.normal.x))
+		let dWallAngle = s16(wallAngle - m.faceAngle[1])
 
 		if (dWallAngle > -0x71C8 && dWallAngle < 0x71C8) {
 			m.actionState = 1
-			m.actionArg = new Int16Array([wallAngle + 0x8000])[0]
+			m.actionArg = s16(wallAngle + 0x8000)
 		}
 	}
 }
@@ -202,7 +202,7 @@ function begin_braking_action(m) {
 }
 
 function analog_stick_held_back(m) {
-	let intendedDYaw = new Int16Array([m.intendedYaw - m.faceAngle[1]])[0]
+	let intendedDYaw = s16(m.intendedYaw - m.faceAngle[1])
 	return intendedDYaw < -0x471C || intendedDYaw > 0x471C
 }
 
@@ -240,13 +240,13 @@ function update_walking_speed(m) {
 		m.forwardVel = 48
 	}
 
-	m.faceAngle[1] = m.intendedYaw - approach_s32(new Int16Array([m.intendedYaw - m.faceAngle[1]])[0], 0, 0x800, 0x800)
+	m.faceAngle[1] = m.intendedYaw - approach_s32(s16(m.intendedYaw - m.faceAngle[1]), 0, 0x800, 0x800)
 	apply_slope_accel(m)
 }
 
 function apply_slope_accel(m) {
 	let steepness = sqrtf(m.floor.normal.x * m.floor.normal.x + m.floor.normal.z * m.floor.normal.z)
-	let floorDYaw = new Int16Array([m.floorAngle - m.faceAngle[1]])[0]
+	let floorDYaw = s16(m.floorAngle - m.faceAngle[1])
 
 	if (m.floor_is_slope()) {
 		let slopeAccel

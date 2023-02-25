@@ -1,4 +1,4 @@
-const { sins, coss, atan2s } = require("./math.js")
+const { s16, sins, coss, atan2s } = require("./math.js")
 const { Surface } = require("./surface.js")
 const col = require("./collision.js")
 const Controller = require("./controller.js")
@@ -425,7 +425,7 @@ class Mario {
 		}
 
 		if (this.intendedMag > 0) {
-			this.intendedYaw = new Int16Array([atan2s(-this.controller.stickY, this.controller.stickX) + this.cameraYaw])[0]
+			this.intendedYaw = s16(atan2s(-this.controller.stickY, this.controller.stickX) + this.cameraYaw)
 			this.input |= Mario.INPUT_NONZERO_ANALOG
 		} else {
 			this.intendedYaw = this.faceAngle[1]
@@ -444,7 +444,7 @@ class Mario {
 		({ floor: this.floor, height: this.floorHeight } = col.find_floor(this.pos[0], this.pos[1], this.pos[2]));
 		({ ceil: this.ceil, height: this.ceilHeight } = col.vec3f_find_ceil(this.pos, this.floorHeight));
 
-		this.floorAngle = new Int16Array([atan2s(this.floor.normal.z, this.floor.normal.x)])[0]
+		this.floorAngle = s16(atan2s(this.floor.normal.z, this.floor.normal.x))
 
 		if (this.floor_is_slippery()) {
 			this.input |= Mario.INPUT_ABOVE_SLIDE
@@ -555,7 +555,7 @@ class Mario {
 			yaw += 0x8000
 		}
 
-		yaw = new Int16Array([this.floorAngle - yaw])[0]
+		yaw = s16(this.floorAngle - yaw)
 
 		return -0x4000 < yaw && yaw < 0x4000
 	}
@@ -572,7 +572,7 @@ class Mario {
 
 	bonk_reflection(negateSpeed) {
 		if (this.wall) {
-			let wallAngle = new Int16Array([atan2s(this.wall.normal.z, this.wall.normal.x)])[0]
+			let wallAngle = s16(atan2s(this.wall.normal.z, this.wall.normal.x))
 			this.faceAngle[1] = this.faceAngle[1] - wallAngle
 			this.faceAngle[1] = wallAngle - this.faceAngle[1]
 		}

@@ -1,6 +1,8 @@
 /* const */ fs = require("fs")
 /* const */ repl = require("node:repl")
 
+/* const */ s16 = require("./math.js").s16
+
 /* const */ processCol = require("./process.js").process
 /* const */ col = require("./collision.js")
 
@@ -8,24 +10,7 @@
 /* const */ Mario = require("./mario.js")
 /* const */ action = require("./action.js")
 
-/* let */ staticFloors = []
-/* let */ staticWalls = []
-/* let */ staticCeilings = []
-
-/* let */ dynamicFloors = []
-/* let */ dynamicWalls = []
-/* let */ dynamicCeilings = []
-
-/* let */ levelTris = processCol(fs.readFileSync("./pss/areas/1/collision.inc.c", "utf8")).flat()
-
-levelTris.forEach(surface => surface.addToList(staticFloors, staticWalls, staticCeilings))
-
-col.set_static_floor_list(staticFloors)
-col.set_dynamic_floor_list(dynamicFloors)
-col.set_static_wall_list(staticWalls)
-col.set_dynamic_wall_list(dynamicWalls)
-col.set_static_ceil_list(staticCeilings)
-col.set_dynamic_ceil_list(dynamicCeilings)
+processCol(fs.readFileSync("./pss/areas/1/collision.inc.c", "utf8")).flat().forEach(col.add_static)
 
 /* const */ controller = new Controller()
 /* const */ mario = new Mario(controller)
@@ -34,8 +19,18 @@ controller.reset()
 controller.setStick(127, 0)
 controller.setButtons(Controller.U_CBUTTONS)
 
+/* let */ framesExecuted = 0
+
 frame = function() {
-	return action.execute_mario_action(mario)
+	let res = action.execute_mario_action(mario)
+
+	framesExecuted++
+
+	if (framesExecuted % 100000 == 0) {
+		console.log(framesExecuted)
+	}
+
+	return res
 }
 
 test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false) {
@@ -110,7 +105,7 @@ testx = function(x, criterion = () => true, dbg) {
 
 goodyaw = function(m) {
 	let yaw = m.faceAngle[1]
-	let ryaw = new Int16Array([-yaw])[0]
+	let ryaw = s16(-yaw)
 	return yaw > 14300 - 4096 && yaw < 14300 + 4096 ||
 		ryaw > 14300 - 4096 && ryaw < 14300 + 4096
 }

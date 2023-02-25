@@ -1,4 +1,4 @@
-const { atan2s } = require("./math.js")
+const { s16, atan2s } = require("./math.js")
 const col = require("./collision.js")
 
 function perform_ground_step(m) {
@@ -57,7 +57,7 @@ function perform_ground_quarter_step(m, nextPos) {
 	m.floorHeight = floorHeight
 
 	if (upperWall != null) {
-		let wallDYaw = new Int16Array([atan2s(upperWall.normal.z, upperWall.normal.x) - m.faceAngle[1]])[0]
+		let wallDYaw = s16(atan2s(upperWall.normal.z, upperWall.normal.x) - m.faceAngle[1])
 
 		if (
 			wallDYaw >= 0x2AAA && wallDYaw <= 0x5555 ||
