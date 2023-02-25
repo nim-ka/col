@@ -147,8 +147,9 @@ if (!start || !end) {
 			p.set(hash, newRes)
 		}
 
-		let fps = framesExecuted / (endTime - startTime) * 1000
-		console.log(`x = ${x};\t${fps.toFixed(0)} fps;\t${p.size} total pts`)
+		let timeElapsed = (endTime - startTime) / 1000
+		let fps = framesExecuted / timeElapsed
+		console.log(`x = ${x};\t${timeElapsed.toFixed(2)} sec;\t${fps.toFixed(0)} fps;\t${p.size} total pts`)
 	}
 
         fs.writeFileSync(`tests/out-${Date.now() / 1000 | 0}.json`, JSON.stringify([...p.values()]))
