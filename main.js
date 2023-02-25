@@ -31,7 +31,7 @@ frame = function() {
 
 test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false) {
         let y = -4587
-        let z = 4250
+        let z = 4168
 
 	mario = new Mario(controller)
 
