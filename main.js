@@ -152,5 +152,5 @@ if (!start || !end) {
 		console.log(`x = ${x};\t${timeElapsed.toFixed(2)} sec;\t${fps.toFixed(0)} fps;\t${p.size} total pts`)
 	}
 
-        fs.writeFileSync(`tests/out-${Date.now() / 1000 | 0}.json`, JSON.stringify([...p.values()]))
+        fs.writeFileSync(`tests/out-${Math.random()}.json`, JSON.stringify([...p.values()]))
 }
