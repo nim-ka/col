@@ -10,7 +10,7 @@
 /* const */ Mario = require("./mario.js")
 /* const */ action = require("./action.js")
 
-processCol(fs.readFileSync("./pss/areas/1/collision.inc.c", "utf8")).flat().forEach(col.add_static)
+processCol(fs.readFileSync("./pss/areas/1/collision.inc.c", "utf8")).flat().forEach((surf) => col.add(surf, false))
 
 /* const */ controller = new Controller()
 /* const */ mario = new Mario(controller)
@@ -59,6 +59,7 @@ test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false)
 			console.log(state)
 		}
 
+/*
 		if (res == 2 || res == 3) {
 			if (criterion(mario, res)) {
 				return state
@@ -66,21 +67,28 @@ test = function(x, angle, spd, criterion = (m) => m.pos[1] > -4200, dbg = false)
 				return false
 			}
 		}
+*/
 
-/*
-		if (res == 3) {
+		if (res == 2) {
 			return false
 		}
 
-		let dist = Math.hypot(pos[0] - 993, pos[2] - -5614)
+		if (res != 3) {
+			continue
+		}
 
-		if (dist < 200) {
+		let dist = Math.hypot(pos[0] - -5315, pos[2] - -3500)
+
+		if (dist < 100) {
 			if (criterion(mario)) {
 				state.dist = dist
 				return state
+			} else {
+				return false
 			}
+		} else {
+			return false
 		}
-*/
 	}
 
 	return false
@@ -90,8 +98,8 @@ testx = function(x, criterion = () => true, dbg) {
 	let p = []
 
 	for (let angle = 8192; angle >= -8192; angle -= 16) {
-		for (let spd = -380; spd > -440; spd--) {
-			let res = test(x, angle, spd, (m, r) => m.pos[1] > -4200 && criterion(m, r))
+		for (let spd = -340; spd > -380; spd--) {
+			let res = test(x, angle, spd, (m, r) => m.pos[1] > -4500 && criterion(m, r))
 
                         if (res) {
 				p.push(res)
@@ -106,8 +114,8 @@ testx = function(x, criterion = () => true, dbg) {
 	return p
 }
 
-const center = s16(-12000)
-const range = s16(4096)
+const center = s16(-1233)
+const range = s16(1233)
 
 goodyaw = function(m) {
 	let yaw = m.faceAngle[1]
@@ -122,6 +130,11 @@ let end = +process.argv[3]
 let dbg = process.argv[4] == "true"
 
 if (!start || !end) {
+	mario.action = Mario.ACT_DECELERATING
+	mario.queuedCUp = true
+	mario.pos = new Float32Array([-77.8649291992188,-2619.91333007813,-5776.58349609375])
+	mario.forwardVel = -484
+	mario.faceAngle[1] = 32752
 	repl.start("> ")
 } else {
 	console.log(start, end, dbg)
@@ -133,7 +146,7 @@ if (!start || !end) {
 		framesExecuted = 0
 
 		let startTime = performance.now()
-		let reses = testx(x, (m, r) => m.pos[1] < -2000 && m.pos[2] < -5597.5 && goodyaw(m), dbg)
+		let reses = testx(x, (m, r) => goodyaw(m), dbg)
 		let endTime = performance.now()
 
 		for (let res of reses) {

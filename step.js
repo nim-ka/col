@@ -1,4 +1,5 @@
 const { s16, atan2s } = require("./math.js")
+const { WallCollisionData } = require("./surface.js")
 const col = require("./collision.js")
 
 function perform_ground_step(m) {
@@ -72,7 +73,7 @@ function perform_ground_quarter_step(m, nextPos) {
 }
 
 function resolve_and_return_wall_collisions(pos, offset, radius) {
-	let colData = new col.WallCollisionData(pos[0], pos[1], pos[2], offset, radius)
+	let colData = new WallCollisionData(pos[0], pos[1], pos[2], offset, radius)
 	let wall = null
 
 	if (col.find_wall_collisions(colData)) {

@@ -353,14 +353,17 @@ class Surface {
 	}
 }
 
-class SurfaceData {
-	constructor() {
-		this.reset()
-	}
+class WallCollisionData {
+	numWalls = 0
+	walls = []
 
-	reset() {
-		this.dynamic = new Array(16).fill().map(() => new Array(16).fill().map(() => new Array(3).fill().map(() => [])))
-		this.static  = new Array(16).fill().map(() => new Array(16).fill().map(() => new Array(3).fill().map(() => [])))
+	constructor(x, y, z, offsetY, radius) {
+		this.x = f32(x)
+		this.y = f32(y)
+		this.z = f32(z)
+
+		this.offsetY = f32(offsetY)
+		this.radius = f32(radius)
 	}
 }
 
@@ -368,5 +371,5 @@ module.exports = {
 	Vertex,
 	Normal,
 	Surface,
-	SurfaceData,
+	WallCollisionData,
 }
