@@ -209,6 +209,30 @@ class CollisionEngine {
 		this.static  = new Array(16).fill().map(() => new Array(16).fill().map(() => new Array(3).fill().map(() => [])))
 	}
 
+	getAll(type = -1) {
+		let s = new Set()
+
+		for (let cz = 0; cz < 16; cz++) {
+			for (let cx = 0; cx < 16; cx++) {
+				let dynamicCell = this.dynamic[cz][cx]
+				let staticCell = this.static[cz][cx]
+
+				if (type != -1) {
+					dynamicCell = dynamicCell[type]
+					staticCell = staticCell[type]
+				} else {
+					dynamicCell = dynamicCell.flat()
+					staticCell = staticCell.flat()
+				}
+
+				dynamicCell.forEach((surf) => s.add(surf))
+				staticCell.forEach((surf) => s.add(surf))
+			}
+		}
+
+		return [...s]
+	}
+
 	add(surf, dynamic) {
 		surf.addToData(this, dynamic)
 	}

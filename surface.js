@@ -1,4 +1,4 @@
-const { f32, sqrtf, sins, coss } = require("./math.js")
+const { s16, f32, sqrtf, sins, coss } = require("./math.js")
 
 class Vertex {
 	constructor(x, y, z) {
@@ -228,7 +228,6 @@ class Surface {
 		this.originOffset = f32(originOffset)
 		this.lowerY = lowerY
 		this.upperY = upperY
-		this.proj = "z"
 	}
 
 	addToCell(data, dynamic, cellX, cellZ) {
@@ -246,6 +245,8 @@ class Surface {
 
 			if (this.normal.x < -0.707 || this.normal.x > 0.707) {
 				this.proj = "x"
+			} else {
+				this.proj = "z"
 			}
 		}
 

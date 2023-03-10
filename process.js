@@ -58,6 +58,4 @@ function process(str, translation = [0, 0, 0], rotation = [0, 0, 0]) {
 	return tris
 }
 
-module.exports = {
-	process,
-}
+module.exports = process

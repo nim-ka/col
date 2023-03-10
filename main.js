@@ -1,14 +1,17 @@
 /* const */ fs = require("fs")
-/* const */ repl = require("node:repl")
+/* const */ repl = require("repl")
 
-/* const */ s16 = require("./math.js").s16
+/* const */ math = require("./math.js")
 
-/* const */ processCol = require("./process.js").process
+/* const */ processCol = require("./process.js")
 /* const */ col = require("./collision.js")
 
 /* const */ Controller = require("./controller.js")
 /* const */ Mario = require("./mario.js")
 /* const */ action = require("./action.js")
+
+/* const */ Surface = require("./surface.js").Surface
+/* const */ step = require("./step.js")
 
 processCol(fs.readFileSync("./pss/areas/1/collision.inc.c", "utf8")).flat().forEach((surf) => col.add(surf, false))
 
@@ -114,15 +117,15 @@ testx = function(x, criterion = () => true, dbg) {
 	return p
 }
 
-const center = s16(-1233)
-const range = s16(1233)
+const center = math.s16(-1233)
+const range = math.s16(1233)
 
 goodyaw = function(m) {
 	let yaw = m.faceAngle[1]
-	let ryaw = s16(yaw + 32768)
+	let ryaw = math.s16(yaw + 32768)
 
-	return m.forwardVel >= 0 && Math.abs(s16(yaw - center)) < range ||
-		m.forwardVel <= 0 && Math.abs(s16(ryaw - center)) < range
+	return m.forwardVel >= 0 && Math.abs(math.s16(yaw - center)) < range ||
+		m.forwardVel <= 0 && Math.abs(math.s16(ryaw - center)) < range
 }
 
 let start = +process.argv[2]
